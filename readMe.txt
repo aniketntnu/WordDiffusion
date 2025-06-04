@@ -3,6 +3,6 @@ Code for the paper "Word-Diffusion: Diffusion-Based Handwritten Text Word Image 
 
 This code is based on https://github.com/koninik/WordStylist
 
-To train the model use trainModifyCondition_1.py
+To train the model use trainModifyCondition.py
 
 For inference use regenerateFromtrain2.py
