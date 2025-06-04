@@ -545,7 +545,7 @@ def main():
     
     parser.add_argument('--trascriptionPlusOCR', type=int, default=0,help = "it joins transcription and OCR prediction as a conditional input")
 
-    parser.add_argument('--phosc', type=int, default=0)
+    parser.add_argument('--phosc', type=int, default=1)
     parser.add_argument('--phos', type=int, default=0)
     parser.add_argument('--authorBasePath', type=str, default= authorBasePath,help = "This is old model path") # './wordStyleOutPut_600_preprocess_0/'
     parser.add_argument('--lang', type=str, default= lang,help = "language") 
