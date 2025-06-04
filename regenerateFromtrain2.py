@@ -1048,7 +1048,7 @@ def main():
 
     parser.add_argument('--trascriptionPlusOCR', type=int, default=0,
                         help = "it joins transcription and OCR prediction as a conditional input")
-    parser.add_argument('--phosc', type=int, default=0)
+    parser.add_argument('--phosc', type=int, default=1)
     parser.add_argument('--phos', type=int, default=0)
     parser.add_argument('--sidChange', type=int, default=0,help = "this modifies the writer while generating data")
     
