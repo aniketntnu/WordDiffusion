@@ -718,7 +718,7 @@ def train(diffusion, model, ema, ema_model, vae, optimizer, mse_loss, loader, nu
                 
                 
                 if args.phosc ==1 or args.phos ==1:
-                    predicted_noise,att1,att2,att3 = model(x_t, phoscLabels,timesteps=t,context=text_features, y=s_id)        
+                    predicted_noise = model(x_t, phoscLabels,timesteps=t,context=text_features, y=s_id)        
                 else:                
                     if args.imgConditioned == 0:
                         
@@ -810,101 +810,8 @@ def train(diffusion, model, ema, ema_model, vae, optimizer, mse_loss, loader, nu
                 ema.step_ema(ema_model, model)
                 #pbar.set_postfix(MSE=loss.item())
                 
-        if 0:
-            for i, (image_names,tempImg,temp_img_list,images,wrdChrWrStyl, word, s_id,label,phoscLabels) in enumerate(loader):
-
-                    try:
-                        with open(args.stopFlag,"r") as f:
-                            stopValue = int(f.readline())
-                        
-                    except Exception as e:
-                        print("\n\t stop flag issue:",e)
-        
-        
-                    if stopValue == 0:
-                        exit()
-        
-                    images = images.to(args.device)
-                    original_images = images
-                    text_features = word.to(args.device)
-                    
-                    #print("\n\t i:",i," \t images.shape:",images.shape)
-                    
-                    
-                    #print("\n\t i:",i," \t images.shape:",images.shape)
-                    #print("\n\t wordLabel:",label)
-                    #print("\n\t word:",word.shape)
-
-                    #print("\n\t label:",label)
-                    
-                    #print("\n\t phoscLabels:",phoscLabels)
-                    #print("\n\t phoscLabels:",phoscLabels.shape)
-                    
-                    #input("check here")
-                    
-                    #print("\n\t images.shape:",images.shape,"\t word:",word.shape,"\t wrdChrWrStyl.shape:",wrdChrWrStyl.shape," \t i:",i)
-            
-                    s_id = s_id.to(args.device)
-                    
-                    if args.wrdChrWrStyl ==1:
-                        wrdChrWrStyl = wrdChrWrStyl.to(args.device)
-
-                    if args.latent == True and args.vaeFromDict !=1: # 
-                        images = vae.encode(images.to(torch.float32)).latent_dist.sample()
-                        images = images * 0.18215
-                        latents = images
-                        
-                    if args.vaeFromDict ==1:
-                        latents = images 
-                    if args.augMaps == 1:
-                        images = transforms1(images)
-                    
-                    t = diffusion.sample_timesteps(images.shape[0]).to(args.device)
-                    x_t, noise = diffusion.noise_images(images, t)
-                    
-                    if np.random.random() < 0.1:
-                        labels = None
-
-    
         if epoch % 5 == 0:
-            
-            print("\n\t sampling2")
-            # if args.img_feat is True:
-            #     n=16
-            #     labels = image_features
-            # else:
-            labels = torch.arange(16).long().to(args.device)
-            n=len(labels)
-
-            #print("\n\t generation!!!")
-            
-            words = ['text', 'getting', 'prop','t','e','x','t', 'g','e','t','i','n','g', 'p','r','o','A',"n","i","k","e","t"]
-            #words = ['t','e','x','t', 'g','e','t','i','n','g', 'p','r','o','A',"n","i","k","e","t","M","a","y","u","A","a","y","U",]
-            
-            random.shuffle(words)
-            words = words[:-10]
-            import string
-
-            #words = list(string.ascii_uppercase) + list(string.ascii_lowercase)
-            #words = [words[i] + words[i + 1] for i in range(0, len(words) - 1, 2)]
-            
-            #sampling4(epoch,x_t,words, model,vae, n, x_text, labels, args)
-            
-            for x_text in words: 
-                #ema_sampled_images = diffusion.sampling(model, vae, wrdChrWrStyl,phoscLabels,n=n, x_text=x_text, labels=labels, args=args)
-                ema_sampled_images = diffusion.sampling(model, vae,latents, x_text, words,n, labels, args)
-                
-                print("\n\t ema_sampled_images.shape:",ema_sampled_images.shape)
-                
-                sampled_ema = save_images(epoch,ema_sampled_images, os.path.join(args.save_path, 'images', f"{x_text}_{epoch}.jpg"), args)
-                        
-            
-            #torch.save(model.state_dict(), os.path.join(args.save_path,"models", "ckpt.pt"))
-            #torch.save(ema_model.state_dict(), os.path.join(args.save_path,"models", "ema_ckpt.pt"))
-            #torch.save(optimizer.state_dict(), os.path.join(args.save_path,"models", "optim.pt"))   
-            
-            if epoch % 25 == 0:
-            
+                    
                 print("\n\t save path:",os.path.join(args.save_path,"models", "ckpt_"+args.saveModelName))
                 
                 try:
@@ -953,7 +860,7 @@ def main():
                         default=csvRead, 
                         help='training info from .csv instead of authors file') 
     
-    parser.add_argument('--loadPrev', type=int, default=1,help ="model from authorBasePath gets loaded")
+    parser.add_argument('--loadPrev', type=int, default=0,help ="model from authorBasePath gets loaded")
 
 
     parser.add_argument('--save_path', type=str, default=save_path,help = "this is location where it savesthe new model" ) 
@@ -1166,7 +1073,7 @@ def main():
     
         
     if args.phosc == 1 or args.phos == 1:
-        #print("\n\t phosc")
+        print("\n\t phosc")
         unet = UNetModelPhosc(image_size = args.img_size, in_channels=args.channels,
                         model_channels=args.emb_dim, out_channels=args.channels,
                         num_res_blocks=args.num_res_blocks, attention_resolutions=(1,1), 
@@ -1230,7 +1137,7 @@ def main():
     else:
         print('Latent is false - Working on pixel space')
         vae = None
- 
+    
     train(diffusion, unet, ema, ema_model, vae, optimizer, mse_loss, train_loader, style_classes, vocab_size, transforms, args)
 
 
