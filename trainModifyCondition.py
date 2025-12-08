@@ -39,9 +39,9 @@ from diffusers import AutoencoderKL
 #from hiGanBase import hiNetModel
 import sys
 
-from hiGan.networks import BigGAN_networks as hiModel
+#from hiGan.networks import BigGAN_networks as hiModel
 #from hiGan.lib import alphabets
-from hiGan.lib.alphabet import strLabelConverter
+#from hiGan.lib.alphabet import strLabelConverter
 
 from unet import UNetModel
 #from unetOriginal import UNetModel
@@ -69,7 +69,7 @@ c_classes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_'
 cdict = {c:i for i,c in enumerate(c_classes)}
 icdict = {i:c for i,c in enumerate(c_classes)}
 
-label_converter = strLabelConverter("all")
+#label_converter = strLabelConverter("all")
 ctc_loss = lambda y, t, ly, lt: nn.CTCLoss(reduction='sum', zero_infinity=True)(F.log_softmax(y, dim=2), t, ly, lt) / ly.shape[0]
 
 import random
