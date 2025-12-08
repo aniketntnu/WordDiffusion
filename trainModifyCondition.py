@@ -977,7 +977,7 @@ def main():
     parser.add_argument('--wrdChrWrStyl', type=int, default=0)
     parser.add_argument('--charImages', type=int, default=0)
     parser.add_argument('--augMaps', type=int, default=0,help = "This augments the feature map ath the training time")
-    parser.add_argument('--attentionMaps', type=int, default=1,help= "return attention maps")
+    parser.add_argument('--attentionMaps', type=int, default=0,help= "return attention maps")
     parser.add_argument('--attentionVisualition', type=int, default=0,help= "visualise attention maps")
     #parser.add_argument('--noWriter', type=int, default=0,help= "visualise attention maps")
     parser.add_argument('--ocrTraining', type=int, default=0) 
