@@ -982,8 +982,9 @@ def main():
     #parser.add_argument('--noWriter', type=int, default=0,help= "visualise attention maps")
     parser.add_argument('--ocrTraining', type=int, default=0) 
     parser.add_argument('--erase', type=int, default=0,help = "draw verticle lines which erases input image ") 
-    parser.add_argument('--charLevelEmb', type=int, default=1,help = "the word level embeddings are calculated by concatenating char level embeddings")
-    
+    parser.add_argument('--charLevelEmb', type=int, default=0,help = "the word level embeddings are calculated by concatenating char level embeddings")
+    parser.add_argument('--lang', type=str, default= lang,help = "language") 
+
     args = parser.parse_args()
     
     print("\n Arguments:")
