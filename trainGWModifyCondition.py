@@ -325,9 +325,9 @@ def train(diffusion, model, ema, ema_model, vae, optimizer, mse_loss, loader, nu
             text_features = word.to(args.device)
             
             
-            print("\n\t i:",i," \t images.shape:",images.shape)
-            print("\n\t wordLabel:",word," \t s_id:",s_id," label:",label)
-            print("\n\t phoscLabels:",phoscLabels)
+            #print("\n\t i:",i," \t images.shape:",images.shape)
+            #print("\n\t wordLabel:",word," \t s_id:",s_id," label:",label)
+            #print("\n\t phoscLabels:",phoscLabels)
 
             tempData["images"] = images.cpu().detach().numpy()  
             tempData["word"] = word.cpu().detach().numpy()  
@@ -335,25 +335,6 @@ def train(diffusion, model, ema, ema_model, vae, optimizer, mse_loss, loader, nu
             tempData["label"] = label
             tempData["phoscLabels"] = phoscLabels
              
-            """
-            with open('/cluster/datastore/aniketag/newWordStylist/WordStylist/gt/temp.pkl', 'wb') as f:
-                pickle.dump(tempData, f)
-         
-        
-            with open('/cluster/datastore/aniketag/newWordStylist/WordStylist/gt/temp.pkl', 'rb') as f:
-                tempData = pickle.load(f)
-
-            print("\n\t 2.i:",i," \t images.shape:",tempData["images"].shape)
-            print("\n\t 2.wordLabel:",tempData["word"].shape," \t s_id:",tempData["s_id"].shape," label:",tempData["label"])
-            print("\n\t 2.phoscLabels:",len(tempData["phoscLabels"]))
-            """
-            #print("\n\t label:",label)
-            
-            #print("\n\t phoscLabels:",phoscLabels)
-            #print("\n\t phoscLabels:",phoscLabels.shape)
-            
-            #exit()
-            #input("check here")
             
             s_id = s_id.to(args.device)
             
@@ -373,15 +354,7 @@ def train(diffusion, model, ema, ema_model, vae, optimizer, mse_loss, loader, nu
                 predicted_noise = model(x_t, phoscLabels,timesteps=t,context=text_features, y=s_id)        
             else:                
                 predicted_noise = model(x_t,None,timesteps=t,context=text_features,y=s_id)
-        
-                #forward               ( x, original_images=None, timesteps=None, context=None, y=None, original_context=None, or_images=None, mix_rate=None, **kwargs)
-            #print("\n\t predicted_noise.shape:",predicted_noise.shape)
-            #predicted_noise = model(x_t, original_images=original_images, timesteps=t, context=text_features, y=s_id, or_images=None)
-                    
-            #input("check!!!")
-            #continue
             
-            exit()
 
             loss = mse_loss(noise, predicted_noise)
             
@@ -422,13 +395,13 @@ def train(diffusion, model, ema, ema_model, vae, optimizer, mse_loss, loader, nu
             #torch.save(optimizer.state_dict(), os.path.join(args.save_path,"models", "optim.pt"))   
             
             try:
-                torch.save(model.state_dict(), os.path.join(args.save_path,"models", "ckpt_"+args.saveModelName))
-                torch.save(ema_model.state_dict(), os.path.join(args.save_path,"models", "ema_"+args.saveModelName))
-                torch.save(optimizer.state_dict(), os.path.join(args.save_path,"models", "optim_"+args.saveModelName))   
+                torch.save(model.state_dict(), os.path.join(args.save_path,"models", "gw_ckpt_"+args.saveModelName))
+                torch.save(ema_model.state_dict(), os.path.join(args.save_path,"models", "gw_ema_"+args.saveModelName))
+                #torch.save(optimizer.state_dict(), os.path.join(args.save_path,"models", "optim_"+args.saveModelName))   
             except Exception as e:
-                torch.save(model.state_dict(), os.path.join(args.save_path,"models", "ckpt.pt"))
-                torch.save(ema_model.state_dict(), os.path.join(args.save_path,"models", "ema.pt"))
-                torch.save(optimizer.state_dict(), os.path.join(args.save_path,"models", "optim.pt"))   
+                torch.save(model.state_dict(), os.path.join(args.save_path,"models", "gw_ckpt.pt"))
+                torch.save(ema_model.state_dict(), os.path.join(args.save_path,"models", "gw_ema.pt"))
+                #torch.save(optimizer.state_dict(), os.path.join(args.save_path,"models", "optim.pt"))   
                 
             
 
@@ -455,14 +428,14 @@ def main():
     parser.add_argument('--img_feat', type=bool, default=True)
     parser.add_argument('--interpolation', type=bool, default=False)
     parser.add_argument('--writer_dict', type=str, default='./writers_dict.json')
-    parser.add_argument('--stable_dif_path', type=str, default="/cluster/datastore/aniketag/WordStylist/stableDiffusion//", help='path to stable diffusion')
+    parser.add_argument('--stable_dif_path', type=str, default="/cluster/datastore/aniketag/allData/supportingSoftwares/stableDiffusion/", help='path to stable diffusion')
 
     # experiment wise changing parameter
 
     parser.add_argument('--iam_path', type=str, default='/cluster/datastore/aniketag/allData/wordStylist/washingtondb-v1.0/data/preprocess_words_gw/', help='path to iam dataset (images 64x256)')
 
     
-    parser.add_argument('--gt_train', type=str, default="/cluster/datastore/aniketag/allData/wordStylist/washingtondb-v1.0/ground_truth/converted_data.filter27") #  
+    parser.add_argument('--gt_train', type=str, default="./gt/converted_data.filter27") #  
 
     
     parser.add_argument('--csvRead', type=str, 
@@ -479,8 +452,7 @@ def main():
     
     parser.add_argument('--trascriptionPlusOCR', type=int, default=0,help = "it joins transcription and OCR prediction as a conditional input")
 
-    parser.add_argument('--phosc', type=int, default=0)
-    parser.add_argument('--phos', type=int, default=0)
+    parser.add_argument('--phosc', type=int, default=1)
     parser.add_argument('--authorBasePath', type=str, default=None,help = "This is old model path") # './wordStyleOutPut_600_preprocess_0/'
     parser.add_argument('--lang', type=str, default= lang,help = "language") 
 
