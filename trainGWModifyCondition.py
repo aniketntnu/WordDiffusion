@@ -168,7 +168,7 @@ class IAMDataset(Dataset):
         wr_id = self.data_dict[self.indices[idx]]['s_id']
         wr_id = torch.tensor(self.writer_dict[wr_id]).to(torch.int64)
         
-        if self.args.phos ==1 or self.args.phosc ==1:
+        if  self.args.phosc ==1:
             phoscLabel = self.wordPhosc[label]#.astype(np.float32)
         else:
             phoscLabel = "NeglectMe"        
