@@ -133,7 +133,7 @@ class IAMDataset(Dataset):
         self.args = args
         
         
-        if self.args.phos ==1 or self.args.phosc ==1:
+        if  self.args.phosc ==1:
         
             phoscClass = phosc_dataset(self.args,self.data_dict)
             #phoscClass = phosc_dataset.getPhosc(self.data_dict)
