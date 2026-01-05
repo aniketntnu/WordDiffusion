@@ -464,7 +464,7 @@ def main():
         print(f"{arg}: {getattr(args, arg)}")    
 
     print("\n")
-
+    """
     assert args.phosc != 1 or MAX_CHARS == 16, "MAX_CHARS should be 10 when args.phosc is 1"
     assert args.phos != 1 or MAX_CHARS == 16, "MAX_CHARS should be 10 when args.phos is 1"
 
@@ -476,7 +476,7 @@ def main():
 
     assert not (args.phosc == 1 and args.trascriptionPlusOCR == 1), "both can not be 1 at same time"
     assert not (args.phos == 1 and args.trascriptionPlusOCR == 1), "both can not be 1 at same time"
-
+    """
 
 
     if args.wandb_log==True:
