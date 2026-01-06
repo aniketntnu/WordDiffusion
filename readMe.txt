@@ -14,6 +14,8 @@ Change following in code
     parser.add_argument('--stable_dif_path', type=str, default="", help='path to stable diffusion')
     parser.add_argument('--iam_path', type=str, default='/', help='path to iam dataset (images 64x256)')
 
+regenerateFromtrain2GW.py is inference code.
+
 
 
 
