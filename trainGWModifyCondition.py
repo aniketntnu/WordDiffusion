@@ -270,8 +270,9 @@ class Diffusion:
             for i in tqdm(reversed(range(1, self.noise_steps)), position=0):
                 t = (torch.ones(n) * i).long().to(self.device)
                 
-                if args.phosc ==1 or args.phos ==1:
-                    predicted_noise = model(x, phoscLabels,timesteps=t,context=text_features)        
+                if args.phosc ==1 or args.phos ==1: #predicted_noise = model(x, phoscLabels,timesteps=t,context=text_features)
+                    predicted_noise = model(x, phoscLabels, timesteps=t, context=text_features, y=labels, mix_rate=mix_rate)
+
                 else:                
                     #predicted_noise = model(x,None,text_features,original_images=original_images, timesteps=t,  y=s_id, or_images=None)
 
@@ -279,7 +280,7 @@ class Diffusion:
 
                 
                 
-                if cfg_scale > 0:
+                if 0:#cfg_scale > 0:
                     # uncond_predicted_noise = model(x, t, text_features, sid)
                     # predicted_noise = torch.lerp(uncond_predicted_noise, predicted_noise, cfg_scale)
                     uncond_predicted_noise = model(x, None, t, text_features, labels, mix_rate=mix_rate)
@@ -307,6 +308,23 @@ class Diffusion:
             x = (x.clamp(-1, 1) + 1) / 2
             x = (x * 255).type(torch.uint8)
         return x
+
+
+
+
+
+
+
+# Replace the sampling loop with this snippet (or adapt into your script)
+
+from ResPhoSCNetZSL.modules.utils import (
+    generate_phos_vector,
+    generate_phoc_vector,
+    set_phos_version,
+    set_phoc_version,
+)
+
+
 
 def train(diffusion, model, ema, ema_model, vae, optimizer, mse_loss, loader, num_classes, vocab_size, transforms, args):
     model.train()
@@ -367,8 +385,64 @@ def train(diffusion, model, ema, ema_model, vae, optimizer, mse_loss, loader, nu
             ema.step_ema(ema_model, model)
             pbar.set_postfix(MSE=loss.item())
             
-    
-        if epoch % 25 == 0:
+
+        # Make sure versions match training
+        set_phos_version(args.lang)
+        set_phoc_version(args.lang)
+
+
+        def make_phosc_vector(word, args):
+            # normalise same as dataset.getPhosc
+            w = word.replace(" ", "").replace("_", "")
+            phos = generate_phos_vector(w)  # returns numpy array
+            if args.phosc == 1:
+                phoc = np.array(generate_phoc_vector(w), dtype=np.float32)
+            # combine according to flags (matches datasets.py logic)
+            if args.phosc == 1:
+                phosc = np.concatenate((phos, phoc))
+            elif args.phos == 1:
+                phosc = phos
+            else:
+                # if neither phos nor phosc used, return None or empty vector
+                phosc = phos
+            # convert to torch tensor, float, on same device as model
+            return torch.tensor(phosc, dtype=torch.float32).to(args.device)
+
+        words = ['text', 'getting', 'prop']
+
+        for x_text in words:
+            # build phosc labels for this text
+            single_phosc = make_phosc_vector(x_text, args)          # shape: (phosc_dim,)
+            # make batch of size n to match `n` or labels batch size
+            
+            #print("\n\t 1.single_phosc shape:",single_phosc.shape)
+            n =1 
+            phosc_batch = single_phosc.unsqueeze(0).repeat(n, 1)     # shape: (n, phosc_dim)
+
+        
+            # call sampling with phoscLabels
+            ema_sampled_images = diffusion.sampling(
+                ema_model,
+                vae,
+                n=n,
+                x_text=x_text,
+                labels=s_id,
+                phoscLabels=phosc_batch,
+                args=args
+            )
+
+            sampled_ema = save_images(
+                ema_sampled_images,
+                os.path.join(args.save_path, 'images', f"{x_text}_{epoch}.jpg"),
+                args
+            )
+            if args.wandb_log:
+                wandb_sampled_ema = wandb.Image(sampled_ema, caption=f"{x_text}_{epoch}")
+                wandb.log({f"Sampled images": wandb_sampled_ema})
+
+        
+        
+        if 0:epoch % 25 == 0:
             # if args.img_feat is True:
             #     n=16
             #     labels = image_features
@@ -394,14 +468,14 @@ def train(diffusion, model, ema, ema_model, vae, optimizer, mse_loss, loader, nu
             #torch.save(ema_model.state_dict(), os.path.join(args.save_path,"models", "ema_ckpt.pt"))
             #torch.save(optimizer.state_dict(), os.path.join(args.save_path,"models", "optim.pt"))   
             
-            try:
-                torch.save(model.state_dict(), os.path.join(args.save_path,"models", "gw_ckpt_"+args.saveModelName))
-                torch.save(ema_model.state_dict(), os.path.join(args.save_path,"models", "gw_ema_"+args.saveModelName))
-                #torch.save(optimizer.state_dict(), os.path.join(args.save_path,"models", "optim_"+args.saveModelName))   
-            except Exception as e:
-                torch.save(model.state_dict(), os.path.join(args.save_path,"models", "gw_ckpt.pt"))
-                torch.save(ema_model.state_dict(), os.path.join(args.save_path,"models", "gw_ema.pt"))
-                #torch.save(optimizer.state_dict(), os.path.join(args.save_path,"models", "optim.pt"))   
+        try:
+            torch.save(model.state_dict(), os.path.join(args.save_path,"models", "gw_ckpt_"+args.saveModelName))
+            torch.save(ema_model.state_dict(), os.path.join(args.save_path,"models", "gw_ema_"+args.saveModelName))
+            #torch.save(optimizer.state_dict(), os.path.join(args.save_path,"models", "optim_"+args.saveModelName))   
+        except Exception as e:
+            torch.save(model.state_dict(), os.path.join(args.save_path,"models", "gw_ckpt.pt"))
+            torch.save(ema_model.state_dict(), os.path.join(args.save_path,"models", "gw_ema.pt"))
+            #torch.save(optimizer.state_dict(), os.path.join(args.save_path,"models", "optim.pt"))   
                 
             
 
@@ -442,7 +516,7 @@ def main():
                         default=0, 
                         help='training info from .csv instead of authors file') 
     
-    parser.add_argument('--loadPrev', type=int, default=0,help ="model from authorBasePath gets loaded")
+    parser.add_argument('--loadPrev', type=int, default=1,help ="model from authorBasePath gets loaded")
 
     
     
