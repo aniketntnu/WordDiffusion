@@ -1065,7 +1065,7 @@ class UNetModelPhosc(nn.Module):
         self.output_blocks.apply(convert_module_to_f32)
   
     
-    def forward(self, x,phoscLabels, timesteps=None, context=None, y=None):
+    def forward(self, x,phoscLabels, timesteps=None, context=None, y=None, mix_rate=None, **kwargs):
         """
         Apply the model to an input batch.
         :param x: an [N x C x ...] Tensor of inputs.
@@ -1085,8 +1085,10 @@ class UNetModelPhosc(nn.Module):
         
         
         if self.num_classes is not None:
-            assert y.shape == (x.shape[0],)
-        
+            #assert y.shape == (x.shape[0],)
+            if not y.shape[0]==x.shape[0]:
+                y = y[:x.shape[0]]
+
         #if you want to explore interpolation between 2 random styles you can go to the --interpolation argument in the train.py file
         if self.interpolation:
             if mix_rate is not None:
